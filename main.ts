@@ -1,17 +1,18 @@
-import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+// Driver: renders every case in MAKEFUN_INPUT_DIR/cases.json with parse()
+// from ./parse.js and writes the HTML strings, in order, to
+// MAKEFUN_OUTPUT_DIR/html.json. Outside a container the two env vars
+// stand in for /input and /output.
+
+import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { parse } from './parse.js';
 
-// The harness runs `node main.ts`. Cases come from MAKEFUN_INPUT_DIR
-// (default /input) and the rendered HTML goes to MAKEFUN_OUTPUT_DIR
-// (default /output). Each case is rendered alone, in order.
 const INPUT_DIR = process.env.MAKEFUN_INPUT_DIR ?? '/input';
 const OUTPUT_DIR = process.env.MAKEFUN_OUTPUT_DIR ?? '/output';
 
-const cases = JSON.parse(readFileSync(join(INPUT_DIR, 'cases.json'), 'utf8')) as {
-  id: string;
-  markdown: string;
-}[];
-const html = cases.map((c) => parse(c.markdown));
-mkdirSync(OUTPUT_DIR, { recursive: true });
+type Case = { id: string; markdown: string };
+
+const cases = JSON.parse(readFileSync(join(INPUT_DIR, 'cases.json'), 'utf8')) as Case[];
+const html: string[] = [];
+for (const c of cases) html.push(parse(c.markdown));
 writeFileSync(join(OUTPUT_DIR, 'html.json'), JSON.stringify(html));
